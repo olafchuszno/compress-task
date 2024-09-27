@@ -28,7 +28,15 @@ describe('compress function', () => {
 
     const result = compress([2, 4, 6, 8, 10, 13, 14]);
 
-    expect(result).toBe('2-8/2,10,13,14');
+    expect(result).toBe('2-10/2,13,14');
+  });
+
+  it('should compress reversed interval values', () => {
+    const compress = require('./compress.js').compress;
+
+    const result = compress([10, 8, 6, 4, 2, 13, 14]);
+
+    expect(result).toBe('10-2/2,13,14');
   });
 
   it('should compress the string with multiple different sequences', () => {
