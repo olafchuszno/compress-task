@@ -46,4 +46,46 @@ describe('compress function', () => {
 
     expect(result).toBe('1*2,2-6/2,9-3,10-1/3');
   });
+
+  // CodeWars tests
+  it("should compress 2 identical numbers", function () {
+    const compress = require('./compress.js').compress;
+
+    const result = compress([1, 1, 2, 4, 6, 9, 8, 7, 6, 5, 4, 3, 10, 7, 4, 1]);
+
+    expect(compress([1, 2, 2, 3])).toBe('1,2*2,3');
+  });
+
+  it("should compress 3 consecutive numbers, ascending", function () {
+    
+    const compress = require('./compress.js').compress;
+
+    const result = compress([1, 1, 2, 4, 6, 9, 8, 7, 6, 5, 4, 3, 10, 7, 4, 1]);
+
+    expect(compress([1,3,4,5,7])).toBe('1,3-5,7');
+  });
+
+  it("should compress 3 consecutive numbers, descending", function () {
+    const compress = require('./compress.js').compress;
+
+    const result = compress([1, 1, 2, 4, 6, 9, 8, 7, 6, 5, 4, 3, 10, 7, 4, 1]);
+
+    expect(compress([1,5,4,3,7])).toBe('1,5-3,7');
+  });
+
+  it("should compress 3 numbers with same interval, descending", function () {
+    const compress = require('./compress.js').compress;
+
+    const result = compress([1, 1, 2, 4, 6, 9, 8, 7, 6, 5, 4, 3, 10, 7, 4, 1]);
+
+    expect(compress([1,10,8,6,7])).toBe('1,10-6/2,7');
+  });
+
+  it("should compress identical + consecutive + same interval", function () {
+    const compress = require('./compress.js').compress;
+
+    const result = compress([1, 1, 2, 3, 4, 5, 7, 9, 11]);
+
+    expect(result).toBe('1*2,2-5,7-11/2');
+  });
 })
