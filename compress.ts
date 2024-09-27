@@ -28,7 +28,7 @@ export function compress(m: number[]): string {
   let carriedSequence: null | CarriedSequence = null;
 
   //   Iterate and check triplets
-  for (let i = 0; i < m.length - 3; i++) {
+  for (let i = 0; i < m.length; i++) {
     if (skipIterations) {
       skipIterations--;
       continue;
@@ -39,6 +39,23 @@ export function compress(m: number[]): string {
       // Current number - first after carried sequence
       const currentNumber = m[i];
 
+      // If it is the last iteration
+      // Add the sequence with the current number since IT IS the last number
+      if (i === m.length - 1) {
+        // Check whether we can add the current number to the carried sequence
+        if (canContinueSequence(carriedSequence, currentNumber)) {
+          carriedSequence.values.push(currentNumber);
+          compressedResult.push(compressCarriedSequence(carriedSequence));
+        } else {
+          // Push all the numbers to the result - it's the last iteration
+          compressedResult.push(compressCarriedSequence(carriedSequence));
+          compressedResult.push(currentNumber.toString());
+        }
+
+        // This continue breaks the for loop
+        continue;
+      }
+
       // Check whether we can continue the sequence by 1
       // TODO Make sure we don't run out of bounds
       if (canContinueSequence(carriedSequence, currentNumber)) {
@@ -48,7 +65,8 @@ export function compress(m: number[]): string {
         continue;
       }
 
-      // We cannot continue the sequence
+      // We cannot continue the sequence! But still working on the current number
+
       // Push (n) numbers
       compressedResult.push(compressCarriedSequence(carriedSequence));
       
@@ -56,9 +74,11 @@ export function compress(m: number[]): string {
       // Skip (n) iterations
       // skipIterations = carriedSequence.values.length;
 
-      // Reset carried sequence
+      // Reset carried sequence - starting a new one
       carriedSequence = null;
-      continue;
+
+      // Not skipping this iteration - since we are starting a new potential sequence
+      // continue;
     }
 
     // We don't have a carried sequence
@@ -162,10 +182,12 @@ function getSequence(triplet: Triplet): false | Sequence {
 
   // Check for Intervals
   const firstStep = second - first;
+
   if ((third - firstStep) === second) {
     const currentSequence: Sequence = {
       type: SequenceType.Interval,
       members: 'all',
+      intervalStep: firstStep,
     }
 
     if (first > second) {
@@ -223,11 +245,11 @@ function compressCarriedSequence(carriedSequence: CarriedSequence): string {
       break;
 
     case SequenceType.Interval:
-      compressedSequence = `${firstValue}-${lastValue}/${carriedSequence.intervalStep}`;
+      compressedSequence = `${firstValue}-${lastValue}/${Math.abs((carriedSequence.intervalStep as number))}`;
       break;
 
     case SequenceType.IntervalReversed:
-      compressedSequence = `${firstValue}-${lastValue}/${carriedSequence.intervalStep}`;
+      compressedSequence = `${firstValue}-${lastValue}/${Math.abs((carriedSequence.intervalStep) as number)}`;
       break;
     
     default:

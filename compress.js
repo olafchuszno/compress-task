@@ -14,7 +14,7 @@ function compress(m) {
     var skipIterations = 0;
     var carriedSequence = null;
     //   Iterate and check triplets
-    for (var i = 0; i < m.length - 3; i++) {
+    for (var i = 0; i < m.length; i++) {
         if (skipIterations) {
             skipIterations--;
             continue;
@@ -23,6 +23,22 @@ function compress(m) {
         if (carriedSequence) {
             // Current number - first after carried sequence
             var currentNumber = m[i];
+            // If it is the last iteration
+            // Add the sequence with the current number since IT IS the last number
+            if (i === m.length - 1) {
+                // Check whether we can add the current number to the carried sequence
+                if (canContinueSequence(carriedSequence, currentNumber)) {
+                    carriedSequence.values.push(currentNumber);
+                    compressedResult.push(compressCarriedSequence(carriedSequence));
+                }
+                else {
+                    // Push all the numbers to the result - it's the last iteration
+                    compressedResult.push(compressCarriedSequence(carriedSequence));
+                    compressedResult.push(currentNumber.toString());
+                }
+                // This continue breaks the for loop
+                continue;
+            }
             // Check whether we can continue the sequence by 1
             // TODO Make sure we don't run out of bounds
             if (canContinueSequence(carriedSequence, currentNumber)) {
@@ -30,15 +46,16 @@ function compress(m) {
                 carriedSequence.indices.push(i);
                 continue;
             }
-            // We cannot continue the sequence
+            // We cannot continue the sequence! But still working on the current number
             // Push (n) numbers
             compressedResult.push(compressCarriedSequence(carriedSequence));
             // TODO - Check whether we should keep that or skip only 2 nex iterations
             // Skip (n) iterations
             // skipIterations = carriedSequence.values.length;
-            // Reset carried sequence
+            // Reset carried sequence - starting a new one
             carriedSequence = null;
-            continue;
+            // Not skipping this iteration - since we are starting a new potential sequence
+            // continue;
         }
         // We don't have a carried sequence
         var currentTriplet = m.slice(i, i + 3);
@@ -118,6 +135,7 @@ function getSequence(triplet) {
         var currentSequence = {
             type: SequenceType.Interval,
             members: 'all',
+            intervalStep: firstStep,
         };
         if (first > second) {
             currentSequence.type = SequenceType.IntervalReversed;
@@ -160,10 +178,10 @@ function compressCarriedSequence(carriedSequence) {
             compressedSequence = "".concat(firstValue, "-").concat(lastValue);
             break;
         case SequenceType.Interval:
-            compressedSequence = "".concat(firstValue, "-").concat(lastValue, "/").concat(carriedSequence.intervalStep);
+            compressedSequence = "".concat(firstValue, "-").concat(lastValue, "/").concat(Math.abs(carriedSequence.intervalStep));
             break;
         case SequenceType.IntervalReversed:
-            compressedSequence = "".concat(firstValue, "-").concat(lastValue, "/").concat(carriedSequence.intervalStep);
+            compressedSequence = "".concat(firstValue, "-").concat(lastValue, "/").concat(Math.abs((carriedSequence.intervalStep)));
             break;
         default:
             return compressedSequence;
