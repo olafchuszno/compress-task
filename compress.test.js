@@ -42,8 +42,8 @@ describe('compress function', () => {
   it('should compress the string with multiple different sequences', () => {
     const compress = require('./compress.js').compress;
 
-    const result = compress([1, 1, 2, 4, 6, 9, 8, 7, 10, 7, 4, 1]);
+    const result = compress([1, 1, 2, 4, 6, 9, 8, 7, 6, 5, 4, 3, 10, 7, 4, 1]);
 
-    expect(result).toBe('1*2,2-6/2,5,6,9-7,10-1/3');
+    expect(result).toBe('1*2,2-6/2,9-3,10-1/3');
   });
 })
