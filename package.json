@@ -1,0 +1,14 @@
+{
+  "name": "compresstask",
+  "version": "1.0.0",
+  "main": "compress.js",
+  "scripts": {
+    "test": "tsc compress.ts && npx jest"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
+}
