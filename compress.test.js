@@ -1,4 +1,52 @@
 describe('compress function', () => {
+  it('should compress an empty string', () => {
+    const compress = require('./compress.js').compress;
+
+    const result = compress([]);
+
+    expect(result).toBe('');
+  });
+
+  it('should compress a single number', () => {
+    const compress = require('./compress.js').compress;
+
+    const result = compress([1]);
+
+    expect(result).toBe('1');
+  });
+
+  it('should compress two numbers', () => {
+    const compress = require('./compress.js').compress;
+
+    const result = compress([1, 2]);
+
+    expect(result).toBe('1,2');
+  });
+
+  it('should compress two numbers that are duplicates', () => {
+    const compress = require('./compress.js').compress;
+
+    const result = compress([1, 1]);
+
+    expect(result).toBe('1*2');
+  });
+  
+  it('should compress three numbers', () => {
+    const compress = require('./compress.js').compress;
+
+    const result = compress([1, 2, 10]);
+
+    expect(result).toBe('1,2,10');
+  });
+
+  it('should compress a sequence od three numbers', () => {
+    const compress = require('./compress.js').compress;
+
+    const result = compress([1, 2, 3]);
+
+    expect(result).toBe('1-3');
+  });
+
   it('should compress duplicates', () => {
     const compress = require('./compress.js').compress;
 
@@ -88,4 +136,34 @@ describe('compress function', () => {
 
     expect(result).toBe('1*2,2-5,7-11/2');
   });
+
+  it("should compress strings with couple ending at index -3 (from end)", function () {
+    const compress = require('./compress.js').compress;
+
+    const result = compress([
+      93,  92,  91, 180, 108, 105, 102, 122, 130, 177,
+      23, 140, 143, 146, 149,  31,  29,  27,  25,  57,
+     154,  20,  20,  20,  20,  20,  23,  14,  11,   8,
+       5,   2, 195, 143, 140, 137,  94, 168,  55,  53,
+      51,  49, 137,  72, 153,  94, 128,  96,  96,  73,
+       0
+    ]);
+
+    expect(result)
+      .toBe('93-91,180,108-102/3,122,130,177,23,140-149/3,31-25/2,57,154,20*5,23,14-2/3,195,143-137/3,94,168,55-49/2,137,72,153,94,128,96*2,73,0');
+  });
+
+  it("should compress long strings", function () {
+    const compress = require('./compress.js').compress;
+
+    const result = compress([
+      58,  58,  62,  63,  64,  65,  66,  58,
+     148, 148, 170, 169, 168, 167,   8,   5,
+       2, 104, 102, 100, 129, 126, 123, 120,
+     117,  13, 121,  10,   8,   6
+   ]);
+
+    expect(result).toBe('58*2,62-66,58,148*2,170-167,8-2/3,104-100/2,129-117/3,13,121,10-6/2');
+  });
+
 })
