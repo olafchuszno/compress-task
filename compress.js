@@ -28,9 +28,9 @@ function compress(m) {
     var carriedSequence = null;
     //   Iterate and check triplets
     for (var i = 0; i < m.length - 2; i++) {
-        // if (i === 45) {
-        //   debugger;
-        // }
+        if (i === 23) {
+            debugger;
+        }
         if (skipIterations) {
             skipIterations--;
             continue;
@@ -134,6 +134,13 @@ function compress(m) {
                 // We have a couple of first two and last one is not in any sequence
                 compressedResult.push("".concat(currentTriplet[0], "*2"));
                 compressedResult.push(currentTriplet[2].toString());
+                break;
+            }
+            // If couple of the LAST two nums in the current (last) sequence
+            if (currentTriplet[1] === currentTriplet[2] && currentTriplet[0] !== currentTriplet[1]) {
+                // We have a couple of first two and last one is not in any sequence
+                compressedResult.push(currentTriplet[0].toString());
+                compressedResult.push("".concat(currentTriplet[1], "*2"));
                 break;
             }
             var lastSequence = getSequence(currentTriplet);
@@ -346,8 +353,13 @@ function compressCarriedSequence(carriedSequence) {
     }
     return compressedSequence;
 }
-var result = compress([1, 1, 2, 4, 6, 9, 8, 7, 6, 5, 4, 3, 10, 7, 4, 1]);
+var result = compress([
+    196, 105, 107, 109, 197, 4, 53, 61,
+    173, 3, 1, -1, -3, -5, 131, 108,
+    76, 79, 110, 104, 105, 82, 82, 92,
+    89, 57, 57
+]);
 console.log(result);
-var expected = '1*2,2-6/2,9-3,10-1/3';
+var expected = '196,105-109/2,197,4,53,61,173,3--5/2,131,108,76,79,110,104,105,82*2,92,89,57*2';
 console.log('should be:', expected);
 console.log('passed:', result === expected);
