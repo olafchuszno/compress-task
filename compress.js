@@ -14,7 +14,8 @@ function compress(m) {
     var skipIterations = 0;
     var carriedSequence = null;
     //   Iterate and check triplets
-    for (var i = 0; i < m.length; i++) {
+    for (var i = 0; i < m.length - 2; i++) {
+        // Last iteration i === 13
         if (skipIterations) {
             skipIterations--;
             continue;
@@ -23,18 +24,69 @@ function compress(m) {
         if (carriedSequence) {
             // Current number - first after carried sequence
             var currentNumber = m[i];
-            // If it is the last iteration
+            // If it is the last sequence (last three numbers)
             // Add the sequence with the current number since IT IS the last number
-            if (i === m.length - 1) {
-                // Check whether we can add the current number to the carried sequence
-                if (canContinueSequence(carriedSequence, currentNumber)) {
+            if (i === m.length - 3) {
+                // Check whether we can pack more of the last 3 numbers to the carried sequence
+                while (canContinueSequence(carriedSequence, currentNumber)) {
                     carriedSequence.values.push(currentNumber);
-                    compressedResult.push(compressCarriedSequence(carriedSequence));
+                    i++;
+                    currentNumber = m[i];
+                }
+                // However long the carried sequence is - push it to 
+                compressedResult.push(compressCarriedSequence(carriedSequence));
+                // Reset the pushed sequence
+                carriedSequence = null;
+                // We reached the end of "m" array - break the loop
+                if (i >= m.length - 1) {
+                    console.log('REACHED the end --- Last 3 numbers were a sequence');
+                    break;
+                }
+                // We have last 3 / 2 / 1 numbers
+                var firstNumber_1 = m[i];
+                var secondNumber = m[i + 1];
+                var thirdNumber = m[i + 2];
+                // If we have 3 numbers
+                if (i === m.length - 3) {
+                    var triplet = [firstNumber_1, secondNumber, thirdNumber];
+                    var sequence = getSequence(triplet);
+                    // interface CarriedSequence {
+                    //   indices: number[];
+                    //   values: number[];
+                    //   type: SequenceType;
+                    //   intervalStep?: number;
+                    // }
+                    if (sequence) {
+                        // Make sequence out of carried sequence
+                        var createdCarriedSequence = {
+                            indices: [i, i + 1, i + 2],
+                            values: triplet,
+                            type: sequence.type,
+                        };
+                        if (sequence.intervalStep) {
+                            createdCarriedSequence.intervalStep = sequence.intervalStep;
+                        }
+                        // Push the last created sequence
+                        compressedResult.push(compressCarriedSequence(createdCarriedSequence));
+                        // Break the loop - since just created and pushed a sequence out of last 3 numbers in the array!
+                        break;
+                    }
+                    // Else we have only two numbers left!
+                }
+                else if (i === m.length - 2) {
+                    if (firstNumber_1 === secondNumber) {
+                        compressedResult.push("".concat(firstNumber_1, "*2"));
+                    }
+                    else {
+                        // We have 2 last numbers and they don't form or extend ay sequence
+                        compressedResult.push(firstNumber_1.toString());
+                        compressedResult.push(secondNumber.toString());
+                    }
+                    // Else we have just one number left!!!
                 }
                 else {
                     // Push all the numbers to the result - it's the last iteration
-                    compressedResult.push(compressCarriedSequence(carriedSequence));
-                    compressedResult.push(currentNumber.toString());
+                    compressedResult.push(firstNumber_1.toString());
                 }
                 // This continue breaks the for loop
                 continue;
@@ -59,6 +111,38 @@ function compress(m) {
         }
         // We don't have a carried sequence
         var currentTriplet = m.slice(i, i + 3);
+        // if last 3 numbers
+        if (i === m.length - 3) {
+            console.log('entered last three numbers on i:', i);
+            console.log('m.length:', m.length);
+            if (currentTriplet[0] === currentTriplet[1] && currentTriplet[1] !== currentTriplet[2]) {
+                // We have a couple of first two and last one is not in any sequence
+                compressedResult.push("".concat(currentTriplet[0], "*2"));
+                compressedResult.push(currentTriplet[2].toString());
+                break;
+            }
+            var lastSequence = getSequence(currentTriplet);
+            // Check whether we can add the current number to the carried sequence
+            if (lastSequence) {
+                var lastCarriedSequence = {
+                    indices: [i, i + 1, i + 2],
+                    values: currentTriplet,
+                    type: lastSequence.type,
+                };
+                // TODO create compressSequence function
+                compressedResult.push(compressCarriedSequence(lastCarriedSequence));
+                // If has sequence
+            }
+            else {
+                // Push all the numbers to the result - it's the last iteration
+                compressedResult.push(currentTriplet[0].toString());
+                compressedResult.push(currentTriplet[1].toString());
+                compressedResult.push(currentTriplet[2].toString());
+            }
+            console.log('end of code - before continue');
+            // This continue breaks the for loop
+            continue;
+        }
         // if the triplet has a sequence - check next number for it as well
         var currentSequence = getSequence(currentTriplet);
         var firstNumber = currentTriplet[0];
@@ -90,6 +174,40 @@ function compress(m) {
         // We have a triplet sequence - skip to the next (4th) number
         // So we skip next 2 numbers - they are in the triplet
         skipIterations = 2;
+        var indexAfterSkip = i + skipIterations + 1;
+        // LAST TODOOOO
+        // If after skipping we aren't going to enter the loop - finish manually
+        if (indexAfterSkip >= m.length - 2) {
+            // We have a sequence to carry - AND we have 2 more numbers
+            if (indexAfterSkip === m.length - 2) {
+                var firstNumber_2 = m[indexAfterSkip];
+                var secondNumber = m[indexAfterSkip + 1];
+                if (canContinueSequence(carriedSequence, firstNumber_2)) {
+                    carriedSequence.values.push(firstNumber_2);
+                    if (canContinueSequence(carriedSequence, secondNumber)) {
+                        carriedSequence.values.push(secondNumber);
+                        compressedResult.push(compressCarriedSequence(carriedSequence));
+                        break;
+                    }
+                    compressedResult.push(compressCarriedSequence(carriedSequence));
+                    compressedResult.push(secondNumber.toString());
+                    break;
+                }
+                // Else - we just have 1 number left
+            }
+            else {
+                var lastNumber = m[indexAfterSkip];
+                if (canContinueSequence(carriedSequence, lastNumber)) {
+                    carriedSequence.values.push(lastNumber);
+                    compressedResult.push(compressCarriedSequence(carriedSequence));
+                    break;
+                }
+                compressedResult.push(compressCarriedSequence(carriedSequence));
+                compressedResult.push(lastNumber.toString());
+                break;
+            }
+            break;
+        }
         continue;
     }
     return compressedResult.join(',');
@@ -188,6 +306,7 @@ function compressCarriedSequence(carriedSequence) {
     }
     return compressedSequence;
 }
-var finalResult = compress([1, 1, 1, 2, 5, 6, 9, 10]);
-console.log(finalResult);
-console.log();
+var result = compress([1, 2, 2, 3]);
+console.log(result);
+console.log('should be: 1,2*2,3');
+console.log('passed:', result === '1,2*2,3');
