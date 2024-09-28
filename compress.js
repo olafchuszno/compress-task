@@ -28,7 +28,7 @@ function compress(m) {
     var carriedSequence = null;
     //   Iterate and check triplets
     for (var i = 0; i < m.length - 2; i++) {
-        if (i === 10) {
+        if (i === 50) {
             debugger;
         }
         if (skipIterations) {
@@ -241,9 +241,21 @@ function compress(m) {
                     compressedResult.push(secondNumber.toString());
                     break;
                 }
-                // Else - we just have 1 number left
+                else {
+                    compressedResult.push(compressCarriedSequence(carriedSequence));
+                    // We have last two numbers that don't continue the sequence
+                    if (firstNumber_2 === secondNumber) {
+                        compressedResult.push("".concat(firstNumber_2, "*2"));
+                    }
+                    else {
+                        compressedResult.push("".concat(firstNumber_2));
+                        compressedResult.push("".concat(secondNumber));
+                    }
+                    break;
+                }
             }
             else {
+                // Else - we just have 1 number left
                 var lastNumber = m[indexAfterSkip];
                 if (canContinueSequence(carriedSequence, lastNumber)) {
                     carriedSequence.values.push(lastNumber);
@@ -254,7 +266,6 @@ function compress(m) {
                 compressedResult.push(lastNumber.toString());
                 break;
             }
-            break;
         }
         continue;
     }
@@ -355,11 +366,14 @@ function compressCarriedSequence(carriedSequence) {
     return compressedSequence;
 }
 var result = compress([
-    20, 19, 10, 31, 138, 164,
-    193, 161, 32, 79, 76, 73,
-    70, 67, 23
+    98, 181, 181, 181, 36, 131, 129, 127, 105, 108,
+    22, 19, 71, 163, 161, 159, 157, 197, 61, 60,
+    41, 68, 65, 62, 59, 56, 37, 179, 119, 116,
+    113, 110, 91, 90, 89, 88, 45, 123, 124, 51,
+    50, 50, 50, 50, 139, 137, 135, 133, 122, 122,
+    122, 131, 132, 133, 184, 197
 ]);
 console.log(result);
-var expected = '20,19,10,31,138,164,193,161,32,79-67/3,23';
+var expected = '98,181*3,36,131-127/2,105,108,22,19,71,163-157/2,197,61,60,41,68-56/3,37,179,119-110/3,91-88,45,123,124,51,50*4,139-133/2,122*3,131-133,184,197';
 console.log('should be:', expected);
 console.log('passed:', result === expected);

@@ -47,7 +47,7 @@ export function compress(m: number[]): string {
 
   //   Iterate and check triplets
   for (let i = 0; i < m.length - 2; i++) {
-    if (i === 10) {
+    if (i === 50) {
       debugger;
     }
 
@@ -311,17 +311,30 @@ export function compress(m: number[]): string {
             carriedSequence.values.push(secondNumber);
             compressedResult.push(compressCarriedSequence(carriedSequence));
 
-            break
+            break;
           }
 
           compressedResult.push(compressCarriedSequence(carriedSequence));
           compressedResult.push(secondNumber.toString());
 
           break;
+        } else {
+          compressedResult.push(compressCarriedSequence(carriedSequence));
+
+          // We have last two numbers that don't continue the sequence
+          if (firstNumber === secondNumber) {
+            compressedResult.push(`${firstNumber}*2`);
+          } else {
+            compressedResult.push(`${firstNumber}`);
+            compressedResult.push(`${secondNumber}`);
+          }
+
+          break;
         }
 
-        // Else - we just have 1 number left
+
       } else {
+        // Else - we just have 1 number left
         const lastNumber = m[indexAfterSkip];
 
         if (canContinueSequence(carriedSequence, lastNumber)) {
@@ -336,7 +349,6 @@ export function compress(m: number[]): string {
         break;
       }
 
-      break;
     }
 
     continue;
@@ -469,18 +481,3 @@ function compressCarriedSequence(carriedSequence: CarriedSequence): string {
 
   return compressedSequence;
 }
-
-
-const result = compress([
-  20,  19, 10, 31, 138, 164,
- 193, 161, 32, 79,  76,  73,
-  70,  67, 23
-]);
-
-console.log(result);
-
-const expected = '20,19,10,31,138,164,193,161,32,79-67/3,23';
-
-console.log('should be:', expected);
-
-console.log('passed:', result === expected);
