@@ -1,146 +1,131 @@
 describe('compress function', () => {
-  it('should compress an empty string', () => {
-    const compress = require('./compress.js').compress;
+  this.compress = require('./compress.js').compress;
 
-    const result = compress([]);
+  it('should compress an empty string', () => {
+    const result = this.compress([]);
 
     expect(result).toBe('');
   });
 
   it('should compress a single number', () => {
-    const compress = require('./compress.js').compress;
+    
 
-    const result = compress([1]);
+    const result = this.compress([1]);
 
     expect(result).toBe('1');
   });
 
   it('should compress two numbers', () => {
-    const compress = require('./compress.js').compress;
+    
 
-    const result = compress([1, 2]);
+    const result = this.compress([1, 2]);
 
     expect(result).toBe('1,2');
   });
 
   it('should compress two numbers that are duplicates', () => {
-    const compress = require('./compress.js').compress;
+    
 
-    const result = compress([1, 1]);
+    const result = this.compress([1, 1]);
 
     expect(result).toBe('1*2');
   });
   
   it('should compress three numbers', () => {
-    const compress = require('./compress.js').compress;
+    
 
-    const result = compress([1, 2, 10]);
+    const result = this.compress([1, 2, 10]);
 
     expect(result).toBe('1,2,10');
   });
 
   it('should compress a sequence od three numbers', () => {
-    const compress = require('./compress.js').compress;
+    
 
-    const result = compress([1, 2, 3]);
+    const result = this.compress([1, 2, 3]);
 
     expect(result).toBe('1-3');
   });
 
   it('should compress duplicates', () => {
-    const compress = require('./compress.js').compress;
+    
 
-    const result = compress([1, 1, 1, 2, 5, 6, 9, 10]);
+    const result = this.compress([1, 1, 1, 2, 5, 6, 9, 10]);
 
     expect(result).toBe('1*3,2,5,6,9,10');
   });
 
   it('should compress consecutive values', () => {
-    const compress = require('./compress.js').compress;
+    
 
-    const result = compress([1, 2, 3, 4, 5, 8, 20, 21, 25]);
+    const result = this.compress([1, 2, 3, 4, 5, 8, 20, 21, 25]);
 
     expect(result).toBe('1-5,8,20,21,25');
   });
 
   it('should compress reversed consecutive values', () => {
-    const compress = require('./compress.js').compress;
+    
 
-    const result = compress([5, 4, 3, 2, 1, 8, 20, 21, 25]);
+    const result = this.compress([5, 4, 3, 2, 1, 8, 20, 21, 25]);
 
     expect(result).toBe('5-1,8,20,21,25');
   });
 
   it('should compress interval values', () => {
-    const compress = require('./compress.js').compress;
+    
 
-    const result = compress([2, 4, 6, 8, 10, 13, 14]);
+    const result = this.compress([2, 4, 6, 8, 10, 13, 14]);
 
     expect(result).toBe('2-10/2,13,14');
   });
 
   it('should compress reversed interval values', () => {
-    const compress = require('./compress.js').compress;
+    
 
-    const result = compress([10, 8, 6, 4, 2, 13, 14]);
+    const result = this.compress([10, 8, 6, 4, 2, 13, 14]);
 
     expect(result).toBe('10-2/2,13,14');
   });
 
   it('should compress the string with multiple different sequences', () => {
-    const compress = require('./compress.js').compress;
-
-    const result = compress([1, 1, 2, 4, 6, 9, 8, 7, 6, 5, 4, 3, 10, 7, 4, 1]);
+        const result = this.compress([1, 1, 2, 4, 6, 9, 8, 7, 6, 5, 4, 3, 10, 7, 4, 1]);
 
     expect(result).toBe('1*2,2-6/2,9-3,10-1/3');
   });
 
   // CodeWars tests
   it("should compress 2 identical numbers", () => {
-    const compress = require('./compress.js').compress;
+    const result = this.compress([1, 2, 2, 3]);
 
-    const result = compress([1, 1, 2, 4, 6, 9, 8, 7, 6, 5, 4, 3, 10, 7, 4, 1]);
-
-    expect(compress([1, 2, 2, 3])).toBe('1,2*2,3');
+    expect(result).toBe('1,2*2,3');
   });
 
   it("should compress 3 consecutive numbers, ascending", () => {
-    
-    const compress = require('./compress.js').compress;
+    const result = this.compress([1,3,4,5,7])
 
-    const result = compress([1, 1, 2, 4, 6, 9, 8, 7, 6, 5, 4, 3, 10, 7, 4, 1]);
-
-    expect(compress([1,3,4,5,7])).toBe('1,3-5,7');
+    expect(result).toBe('1,3-5,7');
   });
 
   it("should compress 3 consecutive numbers, descending", () => {
-    const compress = require('./compress.js').compress;
+    const result = this.compress([1,5,4,3,7]);
 
-    const result = compress([1, 1, 2, 4, 6, 9, 8, 7, 6, 5, 4, 3, 10, 7, 4, 1]);
-
-    expect(compress([1,5,4,3,7])).toBe('1,5-3,7');
+    expect(result).toBe('1,5-3,7');
   });
 
   it("should compress 3 numbers with same interval, descending", () => {
-    const compress = require('./compress.js').compress;
+    const result = this.compress([1,10,8,6,7]);
 
-    const result = compress([1, 1, 2, 4, 6, 9, 8, 7, 6, 5, 4, 3, 10, 7, 4, 1]);
-
-    expect(compress([1,10,8,6,7])).toBe('1,10-6/2,7');
+    expect(result).toBe('1,10-6/2,7');
   });
 
   it("should compress identical + consecutive + same interval", () => {
-    const compress = require('./compress.js').compress;
-
-    const result = compress([1, 1, 2, 3, 4, 5, 7, 9, 11]);
+    const result = this.compress([1, 1, 2, 3, 4, 5, 7, 9, 11]);
 
     expect(result).toBe('1*2,2-5,7-11/2');
   });
 
   it("should compress strings with couple ending at index -3 (from end)", () => {
-    const compress = require('./compress.js').compress;
-
-    const result = compress([
+    const result = this.compress([
       93,  92,  91, 180, 108, 105, 102, 122, 130, 177,
       23, 140, 143, 146, 149,  31,  29,  27,  25,  57,
      154,  20,  20,  20,  20,  20,  23,  14,  11,   8,
@@ -154,9 +139,7 @@ describe('compress function', () => {
   });
 
   it("should compress string with the last two elements as a couple", () => {
-    const compress = require('./compress.js').compress;
-
-    const result = compress([
+    const result = this.compress([
       196, 105, 107, 109, 197,  4,  53,  61,
       173,   3,   1,  -1,  -3, -5, 131, 108,
        76,  79, 110, 104, 105, 82,  82,  92,
@@ -168,9 +151,7 @@ describe('compress function', () => {
   });
 
   it("should compress string with last number not in sequence after a long sequence", () => {
-    const compress = require('./compress.js').compress;
-
-    const result = compress([
+    const result = this.compress([
       20,  19, 10, 31, 138, 164,
      193, 161, 32, 79, 76, 73,
       70,  67, 23
@@ -180,9 +161,7 @@ describe('compress function', () => {
   });
 
   it("should compress string with last two numbers not in sequence after a long sequence", () => {
-    const compress = require('./compress.js').compress;
-
-    const result = compress([
+    const result = this.compress([
       98, 181, 181, 181,  36, 131, 129, 127, 105, 108,
       22,  19,  71, 163, 161, 159, 157, 197,  61,  60,
       41,  68,  65,  62,  59,  56,  37, 179, 119, 116,
@@ -195,9 +174,7 @@ describe('compress function', () => {
   });
 
   it("should compress long strings", () => {
-    const compress = require('./compress.js').compress;
-
-    const result = compress([
+    const result = this.compress([
       58,  58,  62,  63,  64,  65,  66,  58,
      148, 148, 170, 169, 168, 167,   8,   5,
        2, 104, 102, 100, 129, 126, 123, 120,
