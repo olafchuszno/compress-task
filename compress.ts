@@ -22,6 +22,24 @@ interface CarriedSequence {
 }
 
 export function compress(m: number[]): string {
+  if (!m.length) {
+    return '';
+  }
+
+  if (m.length < 3) {
+    if (m.length === 1) {
+      return m[0].toString();
+    }
+    
+    const [firstNumber, secondNumber] = m;
+    
+    if (firstNumber === secondNumber) {
+      return `${firstNumber}*2`;
+    }
+    
+    return `${firstNumber},${secondNumber}`;
+  }
+
   const compressedResult: string[] = [];
 
   let skipIterations = 0;
@@ -29,7 +47,10 @@ export function compress(m: number[]): string {
 
   //   Iterate and check triplets
   for (let i = 0; i < m.length - 2; i++) {
-    // Last iteration i === 13
+    // if (i === 45) {
+    //   debugger;
+    // }
+
     if (skipIterations) {
       skipIterations--;
       continue;
@@ -173,6 +194,10 @@ export function compress(m: number[]): string {
           type: lastSequence.type,
         };
 
+        if (lastSequence.intervalStep) {
+          lastCarriedSequence.intervalStep = lastSequence.intervalStep;
+        }
+
         // TODO create compressSequence function
         compressedResult.push(compressCarriedSequence(lastCarriedSequence))
         // If has sequence
@@ -202,12 +227,41 @@ export function compress(m: number[]): string {
 
     // We have a sequence!
 
+    // TODO - Last Error - what if < 2 numbers are left after pushing couple??
     // If we just have a couple (first & second nums)
     if (currentSequence.type === SequenceType.Identical && currentSequence.members === 'firstTwo') {
       compressedResult.push(`${firstNumber}*2`);
 
       skipIterations = 1;
 
+      const indexAfterSkip = i + skipIterations + 1;
+
+      // LAST TODOOOO
+      // If after skipping we aren't going to enter the loop - finish manually
+      if (indexAfterSkip >= m.length - 2) {
+        const firstNumberAfterSkip = m[indexAfterSkip];
+  
+        // We have a sequence to carry - AND we have 2 more numbers
+        if (indexAfterSkip === m.length - 2) {
+          const secondNumberAfterSkip = m[indexAfterSkip + 1];
+
+          if (firstNumberAfterSkip === secondNumberAfterSkip) {
+            compressedResult.push(`${firstNumberAfterSkip}*2`);
+            break;
+          }
+
+          compressedResult.push(firstNumberAfterSkip.toString());
+          compressedResult.push(secondNumberAfterSkip.toString());
+
+        } else if (indexAfterSkip === m.length - 1) {
+          // Else - we just have 1 number left
+          compressedResult.push(firstNumberAfterSkip.toString());
+        }
+
+        break;
+      }
+
+      // Continue - Don't carry the firstTwo sequence since it ended on the third number in this triplet
       continue;
     }
 
@@ -233,7 +287,6 @@ export function compress(m: number[]): string {
 
     const indexAfterSkip = i + skipIterations + 1;
 
-    // LAST TODOOOO
     // If after skipping we aren't going to enter the loop - finish manually
     if (indexAfterSkip >= m.length - 2) {
 
@@ -408,10 +461,12 @@ function compressCarriedSequence(carriedSequence: CarriedSequence): string {
   return compressedSequence;
 }
 
-const result = compress([1, 2, 2, 3]);
+const result = compress([1, 1, 2, 4, 6, 9, 8, 7, 6, 5, 4, 3, 10, 7, 4, 1])
 
 console.log(result);
 
-console.log('should be: 1,2*2,3');
+const expected = '1*2,2-6/2,9-3,10-1/3';
 
-console.log('passed:', result === '1,2*2,3');
+console.log('should be:', expected);
+
+console.log('passed:', result === expected);

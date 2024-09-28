@@ -10,12 +10,27 @@ var SequenceType;
     SequenceType["IntervalReversed"] = "interval-reversed";
 })(SequenceType || (SequenceType = {}));
 function compress(m) {
+    if (!m.length) {
+        return '';
+    }
+    if (m.length < 3) {
+        if (m.length === 1) {
+            return m[0].toString();
+        }
+        var firstNumber = m[0], secondNumber = m[1];
+        if (firstNumber === secondNumber) {
+            return "".concat(firstNumber, "*2");
+        }
+        return "".concat(firstNumber, ",").concat(secondNumber);
+    }
     var compressedResult = [];
     var skipIterations = 0;
     var carriedSequence = null;
     //   Iterate and check triplets
     for (var i = 0; i < m.length - 2; i++) {
-        // Last iteration i === 13
+        // if (i === 45) {
+        //   debugger;
+        // }
         if (skipIterations) {
             skipIterations--;
             continue;
@@ -129,6 +144,9 @@ function compress(m) {
                     values: currentTriplet,
                     type: lastSequence.type,
                 };
+                if (lastSequence.intervalStep) {
+                    lastCarriedSequence.intervalStep = lastSequence.intervalStep;
+                }
                 // TODO create compressSequence function
                 compressedResult.push(compressCarriedSequence(lastCarriedSequence));
                 // If has sequence
@@ -152,10 +170,33 @@ function compress(m) {
             continue;
         }
         // We have a sequence!
+        // TODO - Last Error - what if < 2 numbers are left after pushing couple??
         // If we just have a couple (first & second nums)
         if (currentSequence.type === SequenceType.Identical && currentSequence.members === 'firstTwo') {
             compressedResult.push("".concat(firstNumber, "*2"));
             skipIterations = 1;
+            var indexAfterSkip_1 = i + skipIterations + 1;
+            // LAST TODOOOO
+            // If after skipping we aren't going to enter the loop - finish manually
+            if (indexAfterSkip_1 >= m.length - 2) {
+                var firstNumberAfterSkip = m[indexAfterSkip_1];
+                // We have a sequence to carry - AND we have 2 more numbers
+                if (indexAfterSkip_1 === m.length - 2) {
+                    var secondNumberAfterSkip = m[indexAfterSkip_1 + 1];
+                    if (firstNumberAfterSkip === secondNumberAfterSkip) {
+                        compressedResult.push("".concat(firstNumberAfterSkip, "*2"));
+                        break;
+                    }
+                    compressedResult.push(firstNumberAfterSkip.toString());
+                    compressedResult.push(secondNumberAfterSkip.toString());
+                }
+                else if (indexAfterSkip_1 === m.length - 1) {
+                    // Else - we just have 1 number left
+                    compressedResult.push(firstNumberAfterSkip.toString());
+                }
+                break;
+            }
+            // Continue - Don't carry the firstTwo sequence since it ended on the third number in this triplet
             continue;
         }
         // There is a full triplet sequence
@@ -175,7 +216,6 @@ function compress(m) {
         // So we skip next 2 numbers - they are in the triplet
         skipIterations = 2;
         var indexAfterSkip = i + skipIterations + 1;
-        // LAST TODOOOO
         // If after skipping we aren't going to enter the loop - finish manually
         if (indexAfterSkip >= m.length - 2) {
             // We have a sequence to carry - AND we have 2 more numbers
@@ -306,7 +346,8 @@ function compressCarriedSequence(carriedSequence) {
     }
     return compressedSequence;
 }
-var result = compress([1, 2, 2, 3]);
+var result = compress([1, 1, 2, 4, 6, 9, 8, 7, 6, 5, 4, 3, 10, 7, 4, 1]);
 console.log(result);
-console.log('should be: 1,2*2,3');
-console.log('passed:', result === '1,2*2,3');
+var expected = '1*2,2-6/2,9-3,10-1/3';
+console.log('should be:', expected);
+console.log('passed:', result === expected);
