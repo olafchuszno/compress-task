@@ -167,6 +167,18 @@ describe('compress function', () => {
       .toBe('196,105-109/2,197,4,53,61,173,3--5/2,131,108,76,79,110,104,105,82*2,92,89,57*2');
   });
 
+  it("should compress string with last number not in sequence and a long sequence before it", function () {
+    const compress = require('./compress.js').compress;
+
+    const result = compress([
+      20,  19, 10, 31, 138, 164,
+     193, 161, 32, 79, 76, 73,
+      70,  67, 23
+   ]);
+
+    expect(result).toBe('20,19,10,31,138,164,193,161,32,79-67/3,23');
+  });
+
   it("should compress long strings", function () {
     const compress = require('./compress.js').compress;
 
@@ -179,5 +191,6 @@ describe('compress function', () => {
 
     expect(result).toBe('58*2,62-66,58,148*2,170-167,8-2/3,104-100/2,129-117/3,13,121,10-6/2');
   });
+
 
 })
