@@ -28,7 +28,7 @@ function compress(m) {
     var carriedSequence = null;
     //   Iterate and check triplets
     for (var i = 0; i < m.length - 2; i++) {
-        if (i === 23) {
+        if (i === 10) {
             debugger;
         }
         if (skipIterations) {
@@ -53,10 +53,11 @@ function compress(m) {
                 // Reset the pushed sequence
                 carriedSequence = null;
                 // We reached the end of "m" array - break the loop
-                if (i >= m.length - 1) {
-                    console.log('REACHED the end --- Last 3 numbers were a sequence');
+                if (i > m.length - 1) {
+                    // We're out of numbers
                     break;
                 }
+                // TODO - How can we have more than 1 number still ??? Is it possible ???
                 // We have last 3 / 2 / 1 numbers
                 var firstNumber_1 = m[i];
                 var secondNumber = m[i + 1];
@@ -103,8 +104,8 @@ function compress(m) {
                     // Push all the numbers to the result - it's the last iteration
                     compressedResult.push(firstNumber_1.toString());
                 }
-                // This continue breaks the for loop
-                continue;
+                // End of m array
+                break;
             }
             // Check whether we can continue the sequence by 1
             // TODO Make sure we don't run out of bounds
@@ -354,12 +355,11 @@ function compressCarriedSequence(carriedSequence) {
     return compressedSequence;
 }
 var result = compress([
-    196, 105, 107, 109, 197, 4, 53, 61,
-    173, 3, 1, -1, -3, -5, 131, 108,
-    76, 79, 110, 104, 105, 82, 82, 92,
-    89, 57, 57
+    20, 19, 10, 31, 138, 164,
+    193, 161, 32, 79, 76, 73,
+    70, 67, 23
 ]);
 console.log(result);
-var expected = '196,105-109/2,197,4,53,61,173,3--5/2,131,108,76,79,110,104,105,82*2,92,89,57*2';
+var expected = '20,19,10,31,138,164,193,161,32,79-67/3,23';
 console.log('should be:', expected);
 console.log('passed:', result === expected);

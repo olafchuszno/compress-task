@@ -47,7 +47,7 @@ export function compress(m: number[]): string {
 
   //   Iterate and check triplets
   for (let i = 0; i < m.length - 2; i++) {
-    if (i === 23) {
+    if (i === 10) {
       debugger;
     }
 
@@ -80,11 +80,12 @@ export function compress(m: number[]): string {
         carriedSequence = null;
 
         // We reached the end of "m" array - break the loop
-        if (i >= m.length - 1) {
-          console.log('REACHED the end --- Last 3 numbers were a sequence')
+        if (i > m.length - 1) {
+          // We're out of numbers
           break;
         }
 
+        // TODO - How can we have more than 1 number still ??? Is it possible ???
         // We have last 3 / 2 / 1 numbers
 
         const firstNumber = m[i];
@@ -139,8 +140,8 @@ export function compress(m: number[]): string {
           compressedResult.push(firstNumber.toString());
         }
 
-        // This continue breaks the for loop
-        continue;
+        // End of m array
+        break;
       }
 
       // Check whether we can continue the sequence by 1
@@ -471,15 +472,14 @@ function compressCarriedSequence(carriedSequence: CarriedSequence): string {
 
 
 const result = compress([
-  196, 105, 107, 109, 197, 4, 53, 61,
-  173, 3, 1, -1, -3, -5, 131, 108,
-  76, 79, 110, 104, 105, 82, 82, 92,
-  89, 57, 57
+  20,  19, 10, 31, 138, 164,
+ 193, 161, 32, 79,  76,  73,
+  70,  67, 23
 ]);
 
 console.log(result);
 
-const expected = '196,105-109/2,197,4,53,61,173,3--5/2,131,108,76,79,110,104,105,82*2,92,89,57*2';
+const expected = '20,19,10,31,138,164,193,161,32,79-67/3,23';
 
 console.log('should be:', expected);
 
