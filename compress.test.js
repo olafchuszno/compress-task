@@ -153,6 +153,20 @@ describe('compress function', () => {
       .toBe('93-91,180,108-102/3,122,130,177,23,140-149/3,31-25/2,57,154,20*5,23,14-2/3,195,143-137/3,94,168,55-49/2,137,72,153,94,128,96*2,73,0');
   });
 
+  it("should compress string with the last two elements as a couple", function () {
+    const compress = require('./compress.js').compress;
+
+    const result = compress([
+      196, 105, 107, 109, 197,  4,  53,  61,
+      173,   3,   1,  -1,  -3, -5, 131, 108,
+       76,  79, 110, 104, 105, 82,  82,  92,
+       89,  57,  57
+    ]);
+
+    expect(result)
+      .toBe('196,105-109/2,197,4,53,61,173,3--5/2,131,108,76,79,110,104,105,82*2,92,89,57*2');
+  });
+
   it("should compress long strings", function () {
     const compress = require('./compress.js').compress;
 
