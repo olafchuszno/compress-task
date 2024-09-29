@@ -1,5 +1,3 @@
-type Triplet = [number, number, number];
-
 enum SequenceType {
   Identical = 'identical',
   Consecutive = 'consecutive',
@@ -11,354 +9,124 @@ enum SequenceType {
 interface Sequence {
   type: SequenceType;
   members: 'firstTwo' | 'all';
-  intervalStep?: number;
-}
-
-interface CarriedSequence {
-  indices: number[];
   values: number[];
-  type: SequenceType;
   intervalStep?: number;
 }
 
-export function compress(m: number[]): string {
-  if (!m.length) {
-    return '';
-  }
+export function compress(numbers: number[]): string {
+  const sequences: Array<Sequence | number> = [];
+  let iterationsToSkip = 0;
 
-  if (m.length < 3) {
-    if (m.length === 1) {
-      return m[0].toString();
-    }
-    
-    const [firstNumber, secondNumber] = m;
-    
-    if (firstNumber === secondNumber) {
-      return `${firstNumber}*2`;
-    }
-    
-    return `${firstNumber},${secondNumber}`;
-  }
-
-  const compressedResult: string[] = [];
-
-  let skipIterations = 0;
-  let carriedSequence: null | CarriedSequence = null;
-
-  //   Iterate and check triplets
-  for (let i = 0; i < m.length - 2; i++) {
-    if (i === 50) {
-      debugger;
-    }
-
-    if (skipIterations) {
-      skipIterations--;
+  // Iterate through the string and add sequences
+  for (let i = 0; i < numbers.length; i++) {
+    if (iterationsToSkip) {
+      iterationsToSkip--;
       continue;
     }
 
-    // If we have a carried sequence
-    if (carriedSequence) {
-      // Current number - first after carried sequence
-      let currentNumber = m[i];
+    const currentNumber = numbers[i];
+    const nextNumber = numbers[i + 1];
 
-      // If it is the last sequence (last three numbers)
-      // Add the sequence with the current number since IT IS the last number
-      if (i === m.length - 3) {
-
-        // Check whether we can pack more of the last 3 numbers to the carried sequence
-        while (canContinueSequence(carriedSequence, currentNumber)) {
-          carriedSequence.values.push(currentNumber);
-
-          i++;
-          currentNumber = m[i];
-        }
-
-        // However long the carried sequence is - push it to 
-        compressedResult.push(compressCarriedSequence(carriedSequence));
-
-        // Reset the pushed sequence
-        carriedSequence = null;
-
-        // We reached the end of "m" array - break the loop
-        if (i > m.length - 1) {
-          // We're out of numbers
-          break;
-        }
-
-        // TODO - How can we have more than 1 number still ??? Is it possible ???
-        // We have last 3 / 2 / 1 numbers
-
-        const firstNumber = m[i];
-        const secondNumber = m[i+1];
-        const thirdNumber = m[i + 2];
-
-        // If we have 3 numbers
-        if (i === m.length - 3) {
-          const triplet: Triplet = [firstNumber, secondNumber, thirdNumber];
-          
-          const sequence = getSequence(triplet);
-
-          // interface CarriedSequence {
-          //   indices: number[];
-          //   values: number[];
-          //   type: SequenceType;
-          //   intervalStep?: number;
-          // }
-
-          if (sequence) {
-            // Make sequence out of carried sequence
-            const createdCarriedSequence: CarriedSequence = {
-              indices: [i, i+1, i+2],
-              values: triplet,
-              type: sequence.type,
-            }
-
-            if (sequence.intervalStep) {
-              createdCarriedSequence.intervalStep = sequence.intervalStep;
-            }
-
-            // Push the last created sequence
-            compressedResult.push(compressCarriedSequence(createdCarriedSequence));
-
-            // Break the loop - since just created and pushed a sequence out of last 3 numbers in the array!
-            break;
-          }
-
-          // Else we have only two numbers left!
-        } else if (i === m.length - 2) {
-          if (firstNumber === secondNumber) {
-            compressedResult.push(`${firstNumber}*2`);
-          } else {
-            // We have 2 last numbers and they don't form or extend ay sequence
-            compressedResult.push(firstNumber.toString());
-            compressedResult.push(secondNumber.toString());
-          }
-
-          // Else we have just one number left!!!
-        } else {
-          // Push all the numbers to the result - it's the last iteration
-          compressedResult.push(firstNumber.toString());
-        }
-
-        // End of m array
-        break;
-      }
-
-      // Check whether we can continue the sequence by 1
-      // TODO Make sure we don't run out of bounds
-      if (canContinueSequence(carriedSequence, currentNumber)) {
-        carriedSequence.values.push(currentNumber);
-        carriedSequence.indices.push(i);
-
-        continue;
-      }
-
-      // We cannot continue the sequence! But still working on the current number
-
-      // Push (n) numbers
-      compressedResult.push(compressCarriedSequence(carriedSequence));
+    // If the next number is the same - we have couple
+    if (getSequence([currentNumber, nextNumber])) {
       
-      // TODO - Check whether we should keep that or skip only 2 nex iterations
-      // Skip (n) iterations
-      // skipIterations = carriedSequence.values.length;
 
-      // Reset carried sequence - starting a new one
-      carriedSequence = null;
-
-      // Not skipping this iteration - since we are starting a new potential sequence
-      // continue;
-    }
-
-    // We don't have a carried sequence
-
-    const currentTriplet: Triplet = m.slice(i, i + 3) as Triplet;
-
-    // if last 3 numbers
-    if (i === m.length - 3) {
-      console.log('entered last three numbers on i:', i);
-      console.log('m.length:', m.length);
-
-      if (currentTriplet[0] === currentTriplet[1] && currentTriplet[1] !== currentTriplet[2]) {
-        // We have a couple of first two and last one is not in any sequence
-        compressedResult.push(`${currentTriplet[0]}*2`);
-        compressedResult.push(currentTriplet[2].toString());
-        break;
+      const currentSequence: Sequence = {
+        members: 'firstTwo',
+        values: [currentNumber, nextNumber],
+        type: SequenceType.Identical,
       }
 
-      // If couple of the LAST two nums in the current (last) sequence
-      if (currentTriplet[1] === currentTriplet[2] && currentTriplet[0] !== currentTriplet[1]) {
-        // We have a couple of first two and last one is not in any sequence
-        compressedResult.push(currentTriplet[0].toString());
-        compressedResult.push(`${currentTriplet[1]}*2`);
-        break;
+      let lastSequenceNumberAfterSkip = numbers[i + iterationsToSkip + 2]
+
+      // Keep checking next numbers to extend the sequence
+      while (currentNumber === lastSequenceNumberAfterSkip) {
+        iterationsToSkip++;
+
+        currentSequence.members = 'all';
+        currentSequence.values.push(lastSequenceNumberAfterSkip);
+
+        lastSequenceNumberAfterSkip = numbers[i + iterationsToSkip + 2]
       }
 
-      const lastSequence = getSequence(currentTriplet);
+      sequences.push(currentSequence);
 
-      // Check whether we can add the current number to the carried sequence
-      if (lastSequence) {
-        const lastCarriedSequence: CarriedSequence = {
-          indices: [i, i + 1, i + 2],
-          values: currentTriplet,
-          type: lastSequence.type,
-        };
+      iterationsToSkip++;
 
-        if (lastSequence.intervalStep) {
-          lastCarriedSequence.intervalStep = lastSequence.intervalStep;
-        }
-
-        // TODO create compressSequence function
-        compressedResult.push(compressCarriedSequence(lastCarriedSequence))
-        // If has sequence
-      } else {
-        // Push all the numbers to the result - it's the last iteration
-        compressedResult.push(currentTriplet[0].toString());
-        compressedResult.push(currentTriplet[1].toString());
-        compressedResult.push(currentTriplet[2].toString());
-      }
-
-      console.log('end of code - before continue');
-      // This continue breaks the for loop
       continue;
     }
 
-    
-    // if the triplet has a sequence - check next number for it as well
+    const thirdNumber = numbers[i + 2];
+
+    const currentTriplet = [currentNumber, nextNumber, thirdNumber];
+
     const currentSequence = getSequence(currentTriplet);
+    
+    // If the next 2 numbers (current tripplet) form a sequence
+    if (currentSequence) {
+      let firstSequenceNumberAfterSkip = numbers[i + iterationsToSkip + 1]
+      let secondSequenceNumberAfterSkip = numbers[i + iterationsToSkip + 2]
+      // number after current sequence - asserting this number to current sequence
+      let thirdSequenceNumberAfterSkip = numbers[i + iterationsToSkip + 3]
 
-    const firstNumber = currentTriplet[0];
+      // Keep checking next numbers to extend the sequence
+      while (getSequence([firstSequenceNumberAfterSkip, secondSequenceNumberAfterSkip, thirdSequenceNumberAfterSkip])) {
+        iterationsToSkip++;
+        currentSequence.values.push(thirdSequenceNumberAfterSkip);
 
-    // If we don't have a sequence
-    if (!currentSequence) {
-      compressedResult.push(firstNumber.toString());
+        firstSequenceNumberAfterSkip = numbers[i + iterationsToSkip + 1];
+        secondSequenceNumberAfterSkip = numbers[i + iterationsToSkip + 2];
+        // number after current sequence - asserting this number to current sequence
+        thirdSequenceNumberAfterSkip = numbers[i + iterationsToSkip + 3];
+      }
+
+      sequences.push(currentSequence);
+
+      iterationsToSkip += 2;
+
       continue;
     }
 
-    // We have a sequence!
-
-    // TODO - Last Error - what if < 2 numbers are left after pushing couple??
-    // If we just have a couple (first & second nums)
-    if (currentSequence.type === SequenceType.Identical && currentSequence.members === 'firstTwo') {
-      compressedResult.push(`${firstNumber}*2`);
-
-      skipIterations = 1;
-
-      const indexAfterSkip = i + skipIterations + 1;
-
-      // LAST TODOOOO
-      // If after skipping we aren't going to enter the loop - finish manually
-      if (indexAfterSkip >= m.length - 2) {
-        const firstNumberAfterSkip = m[indexAfterSkip];
-  
-        // We have a sequence to carry - AND we have 2 more numbers
-        if (indexAfterSkip === m.length - 2) {
-          const secondNumberAfterSkip = m[indexAfterSkip + 1];
-
-          if (firstNumberAfterSkip === secondNumberAfterSkip) {
-            compressedResult.push(`${firstNumberAfterSkip}*2`);
-            break;
-          }
-
-          compressedResult.push(firstNumberAfterSkip.toString());
-          compressedResult.push(secondNumberAfterSkip.toString());
-
-        } else if (indexAfterSkip === m.length - 1) {
-          // Else - we just have 1 number left
-          compressedResult.push(firstNumberAfterSkip.toString());
-        }
-
-        break;
-      }
-
-      // Continue - Don't carry the firstTwo sequence since it ended on the third number in this triplet
-      continue;
-    }
-
-    // There is a full triplet sequence
-    const sequenceToCarry: CarriedSequence = {
-      indices: [i, i + 1, i + 2],
-      values: currentTriplet,
-      type: currentSequence.type,
-    };
-
-    // If it is an interval - save the object
-    if (currentSequence.intervalStep) {
-      sequenceToCarry.intervalStep = currentSequence.intervalStep;
-    }
-
-    // Save the sequenceToCarry in the closure for next iteration
-    // So we can check whether it can be extended by next numbers in m[]
-    carriedSequence = sequenceToCarry;
-
-    // We have a triplet sequence - skip to the next (4th) number
-    // So we skip next 2 numbers - they are in the triplet
-    skipIterations = 2;
-
-    const indexAfterSkip = i + skipIterations + 1;
-
-    // If after skipping we aren't going to enter the loop - finish manually
-    if (indexAfterSkip >= m.length - 2) {
-
-      // We have a sequence to carry - AND we have 2 more numbers
-      if (indexAfterSkip === m.length - 2) {
-        const firstNumber = m[indexAfterSkip];
-        const secondNumber = m[indexAfterSkip + 1];
-
-        if (canContinueSequence(carriedSequence, firstNumber)) {
-          carriedSequence.values.push(firstNumber);
-
-          if (canContinueSequence(carriedSequence, secondNumber)) {
-            carriedSequence.values.push(secondNumber);
-            compressedResult.push(compressCarriedSequence(carriedSequence));
-
-            break;
-          }
-
-          compressedResult.push(compressCarriedSequence(carriedSequence));
-          compressedResult.push(secondNumber.toString());
-
-          break;
-        } else {
-          compressedResult.push(compressCarriedSequence(carriedSequence));
-
-          // We have last two numbers that don't continue the sequence
-          if (firstNumber === secondNumber) {
-            compressedResult.push(`${firstNumber}*2`);
-          } else {
-            compressedResult.push(`${firstNumber}`);
-            compressedResult.push(`${secondNumber}`);
-          }
-
-          break;
-        }
-
-
-      } else {
-        // Else - we just have 1 number left
-        const lastNumber = m[indexAfterSkip];
-
-        if (canContinueSequence(carriedSequence, lastNumber)) {
-          carriedSequence.values.push(lastNumber);
-          compressedResult.push(compressCarriedSequence(carriedSequence));
-
-          break;
-        }
-
-        compressedResult.push(compressCarriedSequence(carriedSequence));
-        compressedResult.push(lastNumber.toString());
-        break;
-      }
-
-    }
+    // We don't have any sequence
+    sequences.push(currentNumber);
 
     continue;
   }
 
-  return compressedResult.join(',');
+  const compressedArray = sequences.map((element: Sequence | number) => {
+    if (typeof element === 'number') {
+      return element.toString();
+    } else {
+      return compressSequence(element);
+    }
+  });
+
+  return compressedArray.join(',');
 }
 
-function getSequence(triplet: Triplet): false | Sequence {
-  const [first, second, third] = triplet;
+function getSequence(numbers: number[]): false | Sequence {
+  if (numbers.length === 1) {
+    return false;
+  }
+
+  if (numbers.length === 2) {
+    if (numbers[0] === numbers[1]) {
+      // We have a couple
+      const sequence: Sequence = {
+        type: SequenceType.Identical,
+        members: 'firstTwo',
+        values: numbers,
+      }
+
+      return sequence;
+    }
+
+    return false;
+  }
+
+  // Sequence has three numbers
+
+  const [first, second, third] = numbers;
 
   // Check number order
   if (
@@ -373,10 +141,12 @@ function getSequence(triplet: Triplet): false | Sequence {
     const currentSequence: Sequence = {
       type: SequenceType.Identical,
       members: 'firstTwo',
+      values: [first, second]
     }
 
     if (third === second) {
       currentSequence.members = 'all';
+      values: [first, second, third]
     }
 
     return currentSequence;
@@ -388,6 +158,7 @@ function getSequence(triplet: Triplet): false | Sequence {
     const currentSequence: Sequence = {
       type: SequenceType.Consecutive,
       members: 'all',
+      values: numbers,
     }
 
     return currentSequence;
@@ -398,6 +169,7 @@ function getSequence(triplet: Triplet): false | Sequence {
     const currentSequence: Sequence = {
       type: SequenceType.ConsecutiveReversed,
       members: 'all',
+      values: numbers,
     }
 
     return currentSequence;
@@ -411,6 +183,7 @@ function getSequence(triplet: Triplet): false | Sequence {
       type: SequenceType.Interval,
       members: 'all',
       intervalStep: firstStep,
+      values: numbers,
     }
 
     if (first > second) {
@@ -423,40 +196,15 @@ function getSequence(triplet: Triplet): false | Sequence {
   return false;
 }
 
-function canContinueSequence(carriedSequence: CarriedSequence, nextNumber: number) {
-  const carriedSequenceValues = carriedSequence.values;
-  const lastSequenceValue = carriedSequenceValues[carriedSequenceValues.length - 1];
-
-  // Check whether acn continue the sequence
-  switch (carriedSequence.type) {
-    case SequenceType.Identical:
-      return carriedSequenceValues[0] === nextNumber;
-
-    case SequenceType.Consecutive:
-      return lastSequenceValue + 1 === nextNumber;
-
-    case SequenceType.ConsecutiveReversed:
-      return lastSequenceValue - 1 === nextNumber;
-
-    case SequenceType.Interval:
-      return lastSequenceValue + (carriedSequence.intervalStep as number) === nextNumber;
-
-    case SequenceType.IntervalReversed:
-      return lastSequenceValue + (carriedSequence.intervalStep as number) === nextNumber;
-    
-    default:
-      return false
-  }
-}
-
-function compressCarriedSequence(carriedSequence: CarriedSequence): string {
+function compressSequence(sequence: Sequence): string {
   let compressedSequence = '';
-  const firstValue = carriedSequence.values[0];
-  const lastValue = carriedSequence.values[carriedSequence.values.length - 1];
 
-  switch (carriedSequence.type) {
+  const firstValue = sequence.values[0];
+  const lastValue = sequence.values[sequence.values.length - 1];
+
+  switch (sequence.type) {
     case SequenceType.Identical:
-      compressedSequence = `${firstValue}*${carriedSequence.values.length}`;
+      compressedSequence = `${firstValue}*${sequence.values.length}`;
       break;
 
     case SequenceType.Consecutive:
@@ -468,11 +216,11 @@ function compressCarriedSequence(carriedSequence: CarriedSequence): string {
       break;
 
     case SequenceType.Interval:
-      compressedSequence = `${firstValue}-${lastValue}/${Math.abs((carriedSequence.intervalStep as number))}`;
+      compressedSequence = `${firstValue}-${lastValue}/${Math.abs((sequence.intervalStep as number))}`;
       break;
 
     case SequenceType.IntervalReversed:
-      compressedSequence = `${firstValue}-${lastValue}/${Math.abs((carriedSequence.intervalStep) as number)}`;
+      compressedSequence = `${firstValue}-${lastValue}/${Math.abs((sequence.intervalStep) as number)}`;
       break;
     
     default:
