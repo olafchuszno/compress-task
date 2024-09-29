@@ -66,11 +66,12 @@ function compress(numbers) {
 }
 exports.compress = compress;
 function getSequence(numbers) {
+    var firstNumber = numbers[0], secondNumber = numbers[1], thirdNumber = numbers[2];
     if (numbers.length === 1) {
         return false;
     }
     if (numbers.length === 2) {
-        if (numbers[0] === numbers[1]) {
+        if (firstNumber === secondNumber) {
             // We have a couple
             var sequence = {
                 type: SequenceType.Identical,
@@ -82,54 +83,46 @@ function getSequence(numbers) {
         return false;
     }
     // Sequence has three numbers
-    var first = numbers[0], second = numbers[1], third = numbers[2];
     // Check number order
-    if ((first < second && second > third) ||
-        (first > second && second < third)) {
+    if ((firstNumber < secondNumber && secondNumber > thirdNumber) ||
+        (firstNumber > secondNumber && secondNumber < thirdNumber)) {
         return false;
     }
-    // Check for couples
-    if (first === second) {
+    // Check for Identical Sequence
+    if (firstNumber === secondNumber) {
         var currentSequence = {
             type: SequenceType.Identical,
             members: 'firstTwo',
-            values: [first, second]
+            values: [firstNumber, secondNumber]
         };
-        if (third === second) {
+        if (thirdNumber === secondNumber) {
             currentSequence.members = 'all';
-            values: [first, second, third];
+            values: [firstNumber, secondNumber, thirdNumber];
         }
         return currentSequence;
     }
-    // TODO - optimize with ABS
-    // Check for Consecutive
-    if (first === (second - 1) && second === (third - 1)) {
+    // Check for Consecutive Sequence
+    if (Math.abs(firstNumber - secondNumber) === 1 && Math.abs(secondNumber - thirdNumber) === 1) {
         var currentSequence = {
             type: SequenceType.Consecutive,
             members: 'all',
             values: numbers,
         };
+        if (firstNumber > secondNumber) {
+            currentSequence.type = SequenceType.ConsecutiveReversed;
+        }
         return currentSequence;
     }
-    // Check for Consecutive (Reversed)
-    if (first === (second + 1) && second === (third + 1)) {
-        var currentSequence = {
-            type: SequenceType.ConsecutiveReversed,
-            members: 'all',
-            values: numbers,
-        };
-        return currentSequence;
-    }
-    // Check for Intervals
-    var firstStep = second - first;
-    if ((third - firstStep) === second) {
+    // Check for Interval Sequence
+    var firstStep = secondNumber - firstNumber;
+    if ((thirdNumber - firstStep) === secondNumber) {
         var currentSequence = {
             type: SequenceType.Interval,
             members: 'all',
             intervalStep: firstStep,
             values: numbers,
         };
-        if (first > second) {
+        if (firstNumber > secondNumber) {
             currentSequence.type = SequenceType.IntervalReversed;
         }
         return currentSequence;

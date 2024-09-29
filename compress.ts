@@ -84,12 +84,14 @@ export function compress(numbers: number[]): string {
 }
 
 function getSequence(numbers: number[]): false | Sequence {
+  const [firstNumber, secondNumber, thirdNumber] = numbers;
+
   if (numbers.length === 1) {
     return false;
   }
 
   if (numbers.length === 2) {
-    if (numbers[0] === numbers[1]) {
+    if (firstNumber === secondNumber) {
       // We have a couple
       const sequence: Sequence = {
         type: SequenceType.Identical,
@@ -105,59 +107,49 @@ function getSequence(numbers: number[]): false | Sequence {
 
   // Sequence has three numbers
 
-  const [first, second, third] = numbers;
-
   // Check number order
   if (
-    (first < second && second > third) ||
-    (first > second && second < third)
+    (firstNumber < secondNumber && secondNumber > thirdNumber) ||
+    (firstNumber > secondNumber && secondNumber < thirdNumber)
   ) {
     return false;
   }
 
-  // Check for couples
-  if (first === second) {
+  // Check for Identical Sequence
+  if (firstNumber === secondNumber) {
     const currentSequence: Sequence = {
       type: SequenceType.Identical,
       members: 'firstTwo',
-      values: [first, second]
+      values: [firstNumber, secondNumber]
     }
 
-    if (third === second) {
+    if (thirdNumber === secondNumber) {
       currentSequence.members = 'all';
-      values: [first, second, third]
+      values: [firstNumber, secondNumber, thirdNumber]
     }
 
     return currentSequence;
   }
 
-  // TODO - optimize with ABS
-  // Check for Consecutive
-  if (first === (second - 1) && second === (third - 1)) {
+  // Check for Consecutive Sequence
+  if (Math.abs(firstNumber - secondNumber) === 1 && Math.abs(secondNumber - thirdNumber) === 1) {
     const currentSequence: Sequence = {
       type: SequenceType.Consecutive,
       members: 'all',
       values: numbers,
     }
 
-    return currentSequence;
-  }
-
-  // Check for Consecutive (Reversed)
-  if (first === (second + 1) && second === (third + 1)) {
-    const currentSequence: Sequence = {
-      type: SequenceType.ConsecutiveReversed,
-      members: 'all',
-      values: numbers,
+    if (firstNumber > secondNumber) {
+      currentSequence.type = SequenceType.ConsecutiveReversed;
     }
 
     return currentSequence;
   }
 
-  // Check for Intervals
-  const firstStep = second - first;
+  // Check for Interval Sequence
+  const firstStep = secondNumber - firstNumber;
 
-  if ((third - firstStep) === second) {
+  if ((thirdNumber - firstStep) === secondNumber) {
     const currentSequence: Sequence = {
       type: SequenceType.Interval,
       members: 'all',
@@ -165,7 +157,7 @@ function getSequence(numbers: number[]): false | Sequence {
       values: numbers,
     }
 
-    if (first > second) {
+    if (firstNumber > secondNumber) {
       currentSequence.type = SequenceType.IntervalReversed
     }
 
