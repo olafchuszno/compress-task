@@ -19,51 +19,40 @@ function compress(numbers) {
             continue;
         }
         var currentNumber = numbers[i];
-        var nextNumber = numbers[i + 1];
-        // If the next number is the same - we have couple
-        if (getSequence([currentNumber, nextNumber])) {
-            var currentSequence_1 = {
-                members: 'firstTwo',
-                values: [currentNumber, nextNumber],
-                type: SequenceType.Identical,
-            };
-            var lastSequenceNumberAfterSkip = numbers[i + iterationsToSkip + 2];
-            // Keep checking next numbers to extend the sequence
-            while (currentNumber === lastSequenceNumberAfterSkip) {
-                iterationsToSkip++;
-                currentSequence_1.members = 'all';
-                currentSequence_1.values.push(lastSequenceNumberAfterSkip);
-                lastSequenceNumberAfterSkip = numbers[i + iterationsToSkip + 2];
+        var currentSequence = getSequence(numbers.slice(i, i + 3));
+        if (currentSequence) {
+            if (currentSequence.type === SequenceType.Identical) {
+                var lastSequenceNumberAfterSkip = numbers[i + iterationsToSkip + 2];
+                // Keep checking next numbers to extend the sequence
+                while (currentNumber === lastSequenceNumberAfterSkip) {
+                    iterationsToSkip++;
+                    currentSequence.members = 'all';
+                    currentSequence.values.push(lastSequenceNumberAfterSkip);
+                    lastSequenceNumberAfterSkip = numbers[i + iterationsToSkip + 2];
+                }
             }
-            sequences.push(currentSequence_1);
+            else {
+                var firstSequenceNumberAfterSkip = numbers[i + iterationsToSkip + 1];
+                var secondSequenceNumberAfterSkip = numbers[i + iterationsToSkip + 2];
+                // number after current sequence - asserting this number to current sequence
+                var thirdSequenceNumberAfterSkip = numbers[i + iterationsToSkip + 3];
+                // Keep checking next numbers to extend the sequence
+                while (getSequence([firstSequenceNumberAfterSkip, secondSequenceNumberAfterSkip, thirdSequenceNumberAfterSkip])) {
+                    iterationsToSkip++;
+                    currentSequence.values.push(thirdSequenceNumberAfterSkip);
+                    firstSequenceNumberAfterSkip = numbers[i + iterationsToSkip + 1];
+                    secondSequenceNumberAfterSkip = numbers[i + iterationsToSkip + 2];
+                    // number after current sequence - asserting this number to current sequence
+                    thirdSequenceNumberAfterSkip = numbers[i + iterationsToSkip + 3];
+                }
+                // Additional skip since 2 more numbers in a sequence - compared to one additional with Identical Sequence type
+                iterationsToSkip++;
+            }
+            sequences.push(currentSequence);
             iterationsToSkip++;
             continue;
         }
-        var thirdNumber = numbers[i + 2];
-        var currentTriplet = [currentNumber, nextNumber, thirdNumber];
-        var currentSequence = getSequence(currentTriplet);
-        // If the next 2 numbers (current tripplet) form a sequence
-        if (currentSequence) {
-            var firstSequenceNumberAfterSkip = numbers[i + iterationsToSkip + 1];
-            var secondSequenceNumberAfterSkip = numbers[i + iterationsToSkip + 2];
-            // number after current sequence - asserting this number to current sequence
-            var thirdSequenceNumberAfterSkip = numbers[i + iterationsToSkip + 3];
-            // Keep checking next numbers to extend the sequence
-            while (getSequence([firstSequenceNumberAfterSkip, secondSequenceNumberAfterSkip, thirdSequenceNumberAfterSkip])) {
-                iterationsToSkip++;
-                currentSequence.values.push(thirdSequenceNumberAfterSkip);
-                firstSequenceNumberAfterSkip = numbers[i + iterationsToSkip + 1];
-                secondSequenceNumberAfterSkip = numbers[i + iterationsToSkip + 2];
-                // number after current sequence - asserting this number to current sequence
-                thirdSequenceNumberAfterSkip = numbers[i + iterationsToSkip + 3];
-            }
-            sequences.push(currentSequence);
-            iterationsToSkip += 2;
-            continue;
-        }
-        // We don't have any sequence
         sequences.push(currentNumber);
-        continue;
     }
     var compressedArray = sequences.map(function (element) {
         if (typeof element === 'number') {

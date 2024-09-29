@@ -25,28 +25,41 @@ export function compress(numbers: number[]): string {
     }
 
     const currentNumber = numbers[i];
-    const nextNumber = numbers[i + 1];
 
-    // If the next number is the same - we have couple
-    if (getSequence([currentNumber, nextNumber])) {
-      
+    const currentSequence = getSequence(numbers.slice(i, i + 3));
 
-      const currentSequence: Sequence = {
-        members: 'firstTwo',
-        values: [currentNumber, nextNumber],
-        type: SequenceType.Identical,
-      }
+    if (currentSequence) {
+      if (currentSequence.type === SequenceType.Identical) {
+        let lastSequenceNumberAfterSkip = numbers[i + iterationsToSkip + 2]
 
-      let lastSequenceNumberAfterSkip = numbers[i + iterationsToSkip + 2]
+        // Keep checking next numbers to extend the sequence
+        while (currentNumber === lastSequenceNumberAfterSkip) {
+          iterationsToSkip++;
 
-      // Keep checking next numbers to extend the sequence
-      while (currentNumber === lastSequenceNumberAfterSkip) {
+          currentSequence.members = 'all';
+          currentSequence.values.push(lastSequenceNumberAfterSkip);
+
+          lastSequenceNumberAfterSkip = numbers[i + iterationsToSkip + 2]
+        }
+      } else {
+        let firstSequenceNumberAfterSkip = numbers[i + iterationsToSkip + 1]
+        let secondSequenceNumberAfterSkip = numbers[i + iterationsToSkip + 2]
+        // number after current sequence - asserting this number to current sequence
+        let thirdSequenceNumberAfterSkip = numbers[i + iterationsToSkip + 3]
+  
+        // Keep checking next numbers to extend the sequence
+        while (getSequence([firstSequenceNumberAfterSkip, secondSequenceNumberAfterSkip, thirdSequenceNumberAfterSkip])) {
+          iterationsToSkip++;
+          currentSequence.values.push(thirdSequenceNumberAfterSkip);
+  
+          firstSequenceNumberAfterSkip = numbers[i + iterationsToSkip + 1];
+          secondSequenceNumberAfterSkip = numbers[i + iterationsToSkip + 2];
+          // number after current sequence - asserting this number to current sequence
+          thirdSequenceNumberAfterSkip = numbers[i + iterationsToSkip + 3];
+        }
+  
+        // Additional skip since 2 more numbers in a sequence - compared to one additional with Identical Sequence type
         iterationsToSkip++;
-
-        currentSequence.members = 'all';
-        currentSequence.values.push(lastSequenceNumberAfterSkip);
-
-        lastSequenceNumberAfterSkip = numbers[i + iterationsToSkip + 2]
       }
 
       sequences.push(currentSequence);
@@ -56,41 +69,7 @@ export function compress(numbers: number[]): string {
       continue;
     }
 
-    const thirdNumber = numbers[i + 2];
-
-    const currentTriplet = [currentNumber, nextNumber, thirdNumber];
-
-    const currentSequence = getSequence(currentTriplet);
-    
-    // If the next 2 numbers (current tripplet) form a sequence
-    if (currentSequence) {
-      let firstSequenceNumberAfterSkip = numbers[i + iterationsToSkip + 1]
-      let secondSequenceNumberAfterSkip = numbers[i + iterationsToSkip + 2]
-      // number after current sequence - asserting this number to current sequence
-      let thirdSequenceNumberAfterSkip = numbers[i + iterationsToSkip + 3]
-
-      // Keep checking next numbers to extend the sequence
-      while (getSequence([firstSequenceNumberAfterSkip, secondSequenceNumberAfterSkip, thirdSequenceNumberAfterSkip])) {
-        iterationsToSkip++;
-        currentSequence.values.push(thirdSequenceNumberAfterSkip);
-
-        firstSequenceNumberAfterSkip = numbers[i + iterationsToSkip + 1];
-        secondSequenceNumberAfterSkip = numbers[i + iterationsToSkip + 2];
-        // number after current sequence - asserting this number to current sequence
-        thirdSequenceNumberAfterSkip = numbers[i + iterationsToSkip + 3];
-      }
-
-      sequences.push(currentSequence);
-
-      iterationsToSkip += 2;
-
-      continue;
-    }
-
-    // We don't have any sequence
     sequences.push(currentNumber);
-
-    continue;
   }
 
   const compressedArray = sequences.map((element: Sequence | number) => {
